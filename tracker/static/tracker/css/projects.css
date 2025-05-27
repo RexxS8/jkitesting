@@ -1,0 +1,11 @@
+.weekly-detail {
+    transition: all 0.3s ease;
+}
+.weekly-progress {
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+.weekly-progress-modal {
+    z-index: 1000;
+}

@@ -1,0 +1,12 @@
+/* Tambahkan di bagian <style> atau file CSS terpisah */
+.fc-event {
+    cursor: pointer;
+    margin: 2px 0;
+    border: none !important;
+}
+
+.fc-event-title {
+    white-space: normal !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

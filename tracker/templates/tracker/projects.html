@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-4">
+                <div class="flex items-center space-x-2 text-lg font-bold text-blue-600">
+                    <span>JAYA KARYA INTEGRASI</span>
+                </div>
+                <div class="mb-8">
+                    <span class="text-green-600 font-bold">Integrated Solutions</span>
+                </div>
+
+                
+                <nav class="space-y-1">
+                    <a href="{% url 'index' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-home"></i>
+                        <span class="text-sm font-medium">Dashboard</span>
+                    </a>
+                    <a href="{% url 'projects' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-50 text-blue-600 ">
+                        <i class="fas fa-folder"></i>
+                        <span class="text-sm font-medium">Projects</span>
+                    </a>
+                </nav>
+            </div>
+            
+            <div class="mt-auto p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 cursor-pointer">
+                    <span class="text-2xl">👤</span>
+                    <div>
+                        <p class="text-sm font-medium">John Doe</p>
+                        <p class="text-xs text-gray-500">john@example.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="flex justify-between items-start mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Project Detail List</h1>
+                <div class="flex flex-col space-y-2">
+                    <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                    <button id="importProjectBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <i class="fas fa-file-import"></i>
+                        <span>Import Project</span>
+                    </button>
+                    <button id="addProjectBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Project</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Projects Table -->
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-800">Project List</h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeline</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Projects will be added here dynamically -->
+                            <template id="weeklyProgressTemplate">
+                                <tr class="weekly-detail hidden">
+                                    <td colspan="6" class="px-6 py-4 bg-gray-50">
+                                        <div class="weekly-progress">
+                                            <h4 class="font-medium mb-4">Weekly Progress</h4>
+                                            <div class="space-y-3 weekly-entries"></div>
+                                            <button onclick="handleAddWeek(event)" class="mt-4 bg-green-600 text-white px-3 py-1 rounded">
+                                                Add Progress
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Project Modal -->
+    <div id="projectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-medium text-gray-800">Add New Project</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="projectForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                    <input type="text" id="projectName" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <input type="date" id="startDate" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <input type="date" id="endDate" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="status" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <select id="priority" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Progress (%)</label>
+                    <input type="range" id="progress" min="0" max="100" class="w-full" value="0">
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>0%</span>
+                        <span id="progressValue">0%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                        
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md">Add Project</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Weekly Progress Modal (Dynamic) -->
+    <div id="weeklyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-medium text-gray-800">Add Weekly Progress</h3>
+                <button onclick="closeWeeklyModal()" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        
+            <form id="weeklyForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Week Number</label>
+                    <input type="number" id="weekNumber" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                </div>
+            
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Progress (%)</label>
+                    <input type="number" id="weekProgress" class="w-full px-3 py-2 border border-gray-300 rounded-md" min="0" max="100" required>
+                </div>
+            
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="weekStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                        <option value="On Track">On Track</option>
+                        <option value="At Risk">At Risk</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="weekDescription" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="4" required></textarea>
+                </div>
+
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg w-full">
+                    Save Progress
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'tracker/js/projects.js' %}?v=1.1"></script>
+
+</body>
